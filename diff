@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Doernbecher Cardiology Follow-Up Reminder</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5faff;
+        padding: 20px;
+        text-align: center;
+        color: #003f7d;
+    }
+    h1 {
+        color: #003f7d;
+        margin-bottom: 10px;
+    }
+    p {
+        max-width: 600px;
+        margin: auto;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+    }
+    .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        max-width: 400px;
+        margin: 20px auto;
+    }
+    button {
+        padding: 15px;
+        font-size: 1.1rem;
+        border: none;
+        border-radius: 8px;
+        background-color: #0059b3;
+        color: white;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #004b99;
+    }
+</style>
+
+</head>
+<body>
+
+<h1>Cardiology Follow-Up Reminder</h1>
+
+<p>
+Tap your follow-up interval below. A reminder will be added to your calendar  
+<b>3 months before your child's next scheduled heart visit</b>.
+</p>
+
+<div class="button-container">
+    <button onclick="generateICS(3)">6-Month Follow-Up</button>
+    <button onclick="generateICS(9)">1-Year Follow-Up</button>
+    <button onclick="generateICS(21)">2-Year Follow-Up</button>
+    <button onclick="generateICS(33)">3-Year Follow-Up</button>
+</div>
+
+<script>
+function generateICS(monthsToAdd) {
+    const now = new Date();
+    const reminderDate = new Date(
+        now.getFullYear(),
+        now.getMonth() + monthsToAdd,
+        now.getDate(),
+        9, 0, 0
+    );
+
+    const endDate = new Date(
+        reminderDate.getFullYear(),
+        reminderDate.getMonth(),
+        reminderDate.getDate(),
+        9, 5, 0
+    );
+
+    function formatDate(d) {
+        return (
+            d.getFullYear().toString() +
+            String(d.getMonth() + 1).padStart(2, "0") +
+            String(d.getDate()).padStart(2, "0") +
+            "T" +
+            String(d.getHours()).padStart(2, "0") +
+            String(d.getMinutes()).padStart(2, "0") +
+            String(d.getSeconds()).padStart(2, "0")
+        );
+    }
+
+    const dtStart = formatDate(reminderDate);
+    const dtEnd = formatDate(endDate);
+    const dtStamp = formatDate(new Date());
+
+    const icsContent = `
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Doernbecher Pediatric Cardiology//Reminder App//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:${Date.now()}@doernbecher.org
+DTSTAMP:${dtStamp}
+SUMMARY:Call Doernbecher Cardiology to Schedule Follow-Up Appointment
+DESCRIPTION:Please call Doernbecher Pediatric Cardiology at 503-418-5750 to schedule your child's follow-up appointment.
+DTSTART:${dtStart}
+DTEND:${dtEnd}
+BEGIN:VALARM
+TRIGGER:-PT0M
+ACTION:DISPLAY
+DESCRIPTION:Call Doernbecher Cardiology to schedule your child’s follow-up appointment.
+END:VALARM
+END:VEVENT
+END:VCALENDAR`.trim();
+
+    const blob = new Blob([icsContent], { type: "text/calendar" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "cardio-followup-reminder.ics";
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>

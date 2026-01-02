@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Heart Follow-Up Reminder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 1.5rem;
+      background: #f5f8ff;
+      color: #123;
+    }
+    .card {
+      max-width: 520px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      padding: 1.75rem;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      color: #0b4f9c;
+    }
+    p {
+      margin: 0.4rem 0;
+    }
+    .btn-row {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    button {
+      flex: 1 1 45%;
+      padding: 0.6rem 0.5rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      background: #0b4f9c;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    button:hover {
+      filter: brightness(1.05);
+    }
+    .note {
+      font-size: 0.82rem;
+      margin-top: 0.75rem;
+      color: #455;
+    }
+    .small {
+      font-size: 0.78rem;
+      margin-top: 0.5rem;
+      color: #667;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Set a Heart Follow-Up Reminder</h1>
+    <p>
+      This tool helps you add a reminder to your calendar to
+      <strong>call Doernbecher Pediatric Cardiology</strong> and schedule your
+      child's follow-up appointment.
+    </p>
+    <p><strong>Clinic phone:</strong> 503-418-5750</p>
+
+    <p style="margin-top:0.8rem;">
+      Choose the follow-up plan you were given:
+    </p>
+    <div class="btn-row">
+      <button type="button" onclick="createReminder('6m')">
+        6-month follow-up
+      </button>
+      <button type="button" onclick="createReminder('1y')">
+        1-year follow-up
+      </button>
+      <button type="button" onclick="createReminder('2y')">
+        2-year follow-up
+      </button>
+      <button type="button" onclick="createReminder('3y')">
+        3-year follow-up
+      </button>
+    </div>
+
+    <p class="note">
+      The reminder date is set to about <strong>3 months before</strong> your child's
+      follow-up, based on <strong>today's date</strong>.
+    </p>
+    <p class="small">
+      After the file downloads, open it and add the event to your calendar when prompted.
+    </p>
+  </div>
+
+  <script>
+    // Map each interval to "months from today" for the reminder date
+    const intervalMonths = {
+      "6m": 3,   // 6-month follow-up → reminder 3 months from today
+      "1y": 9,   // 1-year follow-up → reminder 9 months from today
+      "2y": 21,  // 2-year follow-up → reminder 21 months from today
+      "3y": 33   // 3-year follow-up → reminder 33 months from today
+    };
+
+    function addMonths(date, months) {
+      const d = new Date(date.getTime());
+      const day = d.getDate();
+      d.setMonth(d.getMonth() + months);
+
+      // Handle end-of-month edge cases
+      if (d.getDate() < day) {
+        d.setDate(0);
+      }
+      return d;
+    }
+
+    function formatICSDate(date) {
+      function pad(n) { return n < 10 ? "0" + n : "" + n; }
+      const year = date.getFullYear();
+      const month = pad(date.getMonth() + 1);
+      const day = pad(date.getDate());
+      const hour = pad(date.getHours());
+      const minute = pad(date.getMinutes());
+      const second = pad(date.getSeconds());
+      return `${year}${month}${day}T${hour}${minute}${second}`;
+    }
+
+    function createReminder(intervalKey) {
+      const monthsToAdd = intervalMonths[intervalKey];
+      if (!monthsToAdd) {
+        alert("Invalid interval.");
+        return;
+      }
+
+      const now = new Date();
+      const reminderDate = addMonths(now, monthsToAdd);
+
+      // Set reminder time to 9:00–9:05 AM local
+      reminderDate.setHours(9, 0, 0, 0);
+      const endDate = new Date(reminderDate.getTime());
+      endDate.setMinutes(endDate.getMinutes() + 5);
+
+      const dtstart = formatICSDate(reminderDate);
+      const dtend = formatICSDate(endDate);
+      const dtstamp = formatICSDate(now);
+
+      const title = "Call Doernbecher Cardiology to Schedule Follow-Up Appointment";
+      const description =
+        "Please call Doernbecher Pediatric Cardiology at 503-418-5750 " +
+        "to schedule your child's follow-up appointment.";
+
+      const icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//OHSU Doernbecher//Cardiology Follow-Up Reminder//EN",
+        "CALSCALE:GREGORIAN",
+        "BEGIN:VEVENT",
+        "UID:" + Date.now() + "@ohsu.edu",
+        "DTSTAMP:" + dtstamp,
+        "SUMMARY:" + title,
+        "DESCRIPTION:" + description,
+        "DTSTART:" + dtstart,
+        "DTEND:" + dtend,
+        "BEGIN:VALARM",
+        "TRIGGER:-PT0M",
+        "ACTION:DISPLAY",
+        "DESCRIPTION:Call Doernbecher Cardiology to schedule your child’s follow-up appointment.",
+        "END:VALARM",
+        "END:VEVENT",
+        "END:VCALENDAR"
+      ].join("\r\n");
+
+      const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "cardio-followup-reminder-" + intervalKey + ".ics";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // If there's a ?interval= in the URL (for QR codes), auto-run it
+    (function autoFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const interval = params.get("interval");
+      if (interval && intervalMonths[interval]) {
+        // Slight delay so the page has rendered
+        setTimeout(() => createReminder(interval), 300);
+      }
+    })();
+  </script>
+</body>
+</html>

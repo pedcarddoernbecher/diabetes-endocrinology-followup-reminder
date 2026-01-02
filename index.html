@@ -2,154 +2,226 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Follow-Up Reminder</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 24px; background:#fff; color:#111; }
-    .card { max-width: 780px; margin: 0 auto; border: 1px solid #e5e5e5; border-radius: 16px; padding: 20px; }
-    h1 { margin: 0 0 8px; font-size: 28px; }
-    .sub { margin: 0 0 18px; color:#333; }
-    .bar { height: 6px; background:#009A44; border-radius: 999px; margin: 10px 0 18px; }
-    label { display:block; font-weight: 700; margin: 14px 0 6px; }
-    select, button { width: 100%; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid #ccc; }
-    button { background:#009A44; color:#fff; border: none; margin-top: 16px; cursor:pointer; font-weight: 700; }
-    button:hover { filter: brightness(0.95); }
-    .note { margin-top: 14px; font-size: 14px; color:#444; line-height: 1.35; }
-    .phone { font-weight: 800; }
+    :root{
+      --accent:#009A44; /* OHSU green */
+      --text:#111;
+      --muted:#555;
+      --bg:#f7f7f7;
+      --card:#fff;
+    }
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .wrap{
+      max-width:860px;
+      margin:0 auto;
+      padding:24px 16px 40px;
+    }
+    .card{
+      background:var(--card);
+      border-radius:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.08);
+      overflow:hidden;
+    }
+    .header{
+      padding:20px 20px 14px;
+      position:relative;
+    }
+    .bar{
+      height:10px;
+      background:var(--accent);
+    }
+    h1{
+      margin:0;
+      font-size:28px;
+      line-height:1.15;
+      letter-spacing:-.2px;
+    }
+    .sub{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.35;
+    }
+    .content{
+      padding:18px 20px 24px;
+    }
+    label{
+      font-weight:700;
+      display:block;
+      margin:0 0 8px;
+    }
+    select, button{
+      width:100%;
+      font-size:18px;
+      padding:14px 14px;
+      border-radius:12px;
+      border:1px solid #ddd;
+      background:#fff;
+      box-sizing:border-box;
+    }
+    button{
+      margin-top:14px;
+      background:var(--accent);
+      color:#fff;
+      border:none;
+      cursor:pointer;
+      font-weight:800;
+    }
+    button:hover{ filter:brightness(.95); }
+    .note{
+      margin-top:14px;
+      font-size:14px;
+      color:var(--muted);
+      line-height:1.4;
+    }
+    .phone{
+      margin-top:12px;
+      font-size:16px;
+      font-weight:800;
+    }
+    .small{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:10px;
+    }
+    .pill{
+      display:inline-block;
+      background:#eef7f1;
+      color:#0b4d2a;
+      border:1px solid #cfe9da;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      margin-top:10px;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Set a Follow-Up Reminder</h1>
-    <p class="sub">Harold Schnitzer Diabetes and Adult Endocrinology Health Center</p>
-    <div class="bar"></div>
+  <div class="wrap">
+    <div class="card">
+      <div class="bar"></div>
+      <div class="header">
+        <h1>Set a Reminder to Schedule Your Follow-Up</h1>
+        <p class="sub">
+          Choose your follow-up plan below. We’ll create a calendar reminder for when to call and schedule (about <b>3 months before</b> the visit when possible).
+        </p>
+        <div class="pill">Harold Schnitzer Diabetes and Adult Endocrinology Health Center</div>
+      </div>
 
-    <label for="interval">Choose your follow-up plan:</label>
-    <select id="interval">
-      <option value="1m">1 month</option>
-      <option value="3m">3 months</option>
-      <option value="6m">6 months</option>
-      <option value="1y">1 year</option>
-    </select>
+      <div class="content">
+        <label for="interval">My follow-up plan is:</label>
+        <select id="interval">
+          <option value="1">1 month</option>
+          <option value="2">2 months</option>
+          <option value="3">3 months</option>
+          <option value="4">4 months</option>
+          <option value="6">6 months</option>
+          <option value="12">1 year</option>
+        </select>
 
-    <button id="addBtn">Add reminder to my calendar</button>
+        <button id="addBtn">Add Reminder to My Calendar</button>
 
-    <p class="note">
-      This will create a calendar reminder to call and schedule your follow-up if it has not already been scheduled.
-      <br/>
-      Scheduling phone: <span class="phone">503-494-3273</span>
-    </p>
+        <div class="phone">Scheduling: 503-494-3273</div>
 
-    <p class="note" id="logicNote"></p>
+        <p class="note" id="noteText"></p>
+        <div class="small">
+          Tip: After tapping “Add,” you can adjust notifications in your calendar if you’d like an extra alert.
+        </div>
+      </div>
+    </div>
   </div>
 
 <script>
-(function () {
-  const clinicName = "Harold Schnitzer Diabetes and Adult Endocrinology Health Center";
+  const clinicName = "The Harold Schnitzer Diabetes and Adult Endocrinology Health Center";
   const phone = "503-494-3273";
-
-  // Map follow-up interval -> months until reminder (3 months before follow-up)
-  // For 1m and 3m follow-ups, "3 months before" becomes "today" (0 months).
-  const reminderMonthsByInterval = {
-    "1m": 0,   // reminder today
-    "3m": 0,   // reminder today
-    "6m": 3,   // 6 - 3
-    "1y": 9    // 12 - 3
-  };
-
-  const intervalLabel = { "1m":"1 month", "3m":"3 months", "6m":"6 months", "1y":"1 year" };
-
-  function addMonths(d, months) {
-    // safe month add: JS will auto-roll dates; we anchor by setting date=1 then restore min day
-    const day = d.getDate();
-    const out = new Date(d);
-    out.setDate(1);
-    out.setMonth(out.getMonth() + months);
-    const lastDay = new Date(out.getFullYear(), out.getMonth() + 1, 0).getDate();
-    out.setDate(Math.min(day, lastDay));
-    return out;
-  }
-
-  function fmtICSDate(dt) {
-    // floating local time: YYYYMMDDTHHMMSS
-    const pad = (n) => String(n).padStart(2, "0");
-    return dt.getFullYear() +
-      pad(dt.getMonth() + 1) +
-      pad(dt.getDate()) + "T" +
-      pad(dt.getHours()) +
-      pad(dt.getMinutes()) +
-      pad(dt.getSeconds());
-  }
-
-  function downloadICS(reminderDate, intervalKey) {
-    // Event at 9:00 AM for 5 minutes
-    const start = new Date(reminderDate);
-    start.setHours(9, 0, 0, 0);
-    const end = new Date(reminderDate);
-    end.setHours(9, 5, 0, 0);
-
-    const uid = (crypto?.randomUUID?.() || (Date.now() + "@ohsu"));
-    const dtstamp = fmtICSDate(new Date());
-
-    const summary = "Call to schedule your follow-up appointment";
-    const description =
-      `Please call ${clinicName} at ${phone} to schedule your follow-up appointment (if not already scheduled).`;
-
-    const ics =
-`BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//OHSU//Follow-Up Reminder//EN
-CALSCALE:GREGORIAN
-BEGIN:VEVENT
-UID:${uid}
-DTSTAMP:${dtstamp}
-SUMMARY:${summary}
-DESCRIPTION:${description}
-DTSTART:${fmtICSDate(start)}
-DTEND:${fmtICSDate(end)}
-BEGIN:VALARM
-TRIGGER:-PT0M
-ACTION:DISPLAY
-DESCRIPTION:Call ${clinicName} at ${phone} to schedule your follow-up.
-END:VALARM
-END:VEVENT
-END:VCALENDAR`;
-
-    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `followup-reminder-${intervalKey}.ics`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
+  const title = "Call to Schedule Follow-Up Appointment";
+  const details = `Please call ${clinicName} at ${phone} to schedule your follow-up appointment.`;
 
   const intervalEl = document.getElementById("interval");
-  const btn = document.getElementById("addBtn");
-  const note = document.getElementById("logicNote");
+  const noteEl = document.getElementById("noteText");
+  const btnEl = document.getElementById("addBtn");
 
-  function updateNote() {
-    const key = intervalEl.value;
-    const months = reminderMonthsByInterval[key];
-    if (months === 0) {
-      note.textContent = `For a ${intervalLabel[key]} follow-up, “3 months before” is today — this will set a reminder for today.`;
-    } else {
-      note.textContent = `This will set a reminder for ${months} month(s) from today (3 months before your ${intervalLabel[key]} follow-up).`;
-    }
+  function addDays(d, days){
+    const x = new Date(d);
+    x.setDate(x.getDate() + days);
+    return x;
   }
-  intervalEl.addEventListener("change", updateNote);
-  updateNote();
 
-  btn.addEventListener("click", () => {
-    const key = intervalEl.value;
-    const months = reminderMonthsByInterval[key];
+  function addMonths(d, months){
+    const x = new Date(d);
+    const day = x.getDate();
+    x.setMonth(x.getMonth() + months);
+
+    // handle month rollover (e.g., adding months to the 31st)
+    if (x.getDate() < day) x.setDate(0);
+    return x;
+  }
+
+  // For Google Calendar URL, we’ll create an ALL-DAY event on the reminder date.
+  function formatDateYYYYMMDD(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}${m}${day}`;
+  }
+
+  function computeReminderDate(today, followupMonths){
+    // Special rules for short intervals
+    if (followupMonths === 1 || followupMonths === 2) return addDays(today, 7);     // 1 week
+    if (followupMonths === 3) return addDays(today, 21);                            // 3 weeks
+
+    // Otherwise reminder is 3 months before follow-up:
+    const monthsUntilReminder = followupMonths - 3;
+    return addMonths(today, monthsUntilReminder);
+  }
+
+  function updateNote(){
     const today = new Date();
-    const reminderDate = addMonths(today, months);
-    downloadICS(reminderDate, key);
+    const followupMonths = parseInt(intervalEl.value, 10);
+    const reminderDate = computeReminderDate(today, followupMonths);
+
+    const human = reminderDate.toLocaleDateString(undefined, { year:"numeric", month:"long", day:"numeric" });
+
+    let ruleText = "";
+    if (followupMonths === 1 || followupMonths === 2) ruleText = "Because your follow-up is soon, your reminder will be set for 1 week from today.";
+    else if (followupMonths === 3) ruleText = "Because your follow-up is soon, your reminder will be set for 3 weeks from today.";
+    else ruleText = "Your reminder will be set for about 3 months before your follow-up visit.";
+
+    noteEl.innerHTML = `<b>Reminder date:</b> ${human}<br>${ruleText}`;
+  }
+
+  function openGoogleCalendarAllDayEvent(reminderDate){
+    const start = formatDateYYYYMMDD(reminderDate);
+    // All-day events use end date = next day
+    const endDate = addDays(reminderDate, 1);
+    const end = formatDateYYYYMMDD(endDate);
+
+    const url =
+      "https://calendar.google.com/calendar/render?action=TEMPLATE" +
+      "&text=" + encodeURIComponent(title) +
+      "&details=" + encodeURIComponent(details) +
+      "&dates=" + start + "/" + end;
+
+    window.location.href = url;
+  }
+
+  intervalEl.addEventListener("change", updateNote);
+  btnEl.addEventListener("click", () => {
+    const today = new Date();
+    const followupMonths = parseInt(intervalEl.value, 10);
+    const reminderDate = computeReminderDate(today, followupMonths);
+    openGoogleCalendarAllDayEvent(reminderDate);
   });
-})();
+
+  updateNote();
 </script>
 </body>
 </html>

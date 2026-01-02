@@ -1,201 +1,155 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Heart Follow-Up Reminder</title>
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Follow-Up Reminder</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      padding: 1.5rem;
-      background: #f5f8ff;
-      color: #123;
-    }
-    .card {
-      max-width: 520px;
-      margin: 0 auto;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      padding: 1.75rem;
-    }
-    h1 {
-      font-size: 1.4rem;
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-      color: #0b4f9c;
-    }
-    p {
-      margin: 0.4rem 0;
-    }
-    .btn-row {
-      margin-top: 1rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    button {
-      flex: 1 1 45%;
-      padding: 0.6rem 0.5rem;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.95rem;
-      background: #0b4f9c;
-      color: white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    button:hover {
-      filter: brightness(1.05);
-    }
-    .note {
-      font-size: 0.82rem;
-      margin-top: 0.75rem;
-      color: #455;
-    }
-    .small {
-      font-size: 0.78rem;
-      margin-top: 0.5rem;
-      color: #667;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 24px; background:#fff; color:#111; }
+    .card { max-width: 780px; margin: 0 auto; border: 1px solid #e5e5e5; border-radius: 16px; padding: 20px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .sub { margin: 0 0 18px; color:#333; }
+    .bar { height: 6px; background:#009A44; border-radius: 999px; margin: 10px 0 18px; }
+    label { display:block; font-weight: 700; margin: 14px 0 6px; }
+    select, button { width: 100%; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid #ccc; }
+    button { background:#009A44; color:#fff; border: none; margin-top: 16px; cursor:pointer; font-weight: 700; }
+    button:hover { filter: brightness(0.95); }
+    .note { margin-top: 14px; font-size: 14px; color:#444; line-height: 1.35; }
+    .phone { font-weight: 800; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Set a Heart Follow-Up Reminder</h1>
-    <p>
-      This tool helps you add a reminder to your calendar to
-      <strong>call Doernbecher Pediatric Cardiology</strong> and schedule your
-      child's follow-up appointment.
-    </p>
-    <p><strong>Clinic phone:</strong> 503-418-5750</p>
+    <h1>Set a Follow-Up Reminder</h1>
+    <p class="sub">Harold Schnitzer Diabetes and Adult Endocrinology Health Center</p>
+    <div class="bar"></div>
 
-    <p style="margin-top:0.8rem;">
-      Choose the follow-up plan you were given:
-    </p>
-    <div class="btn-row">
-      <button type="button" onclick="createReminder('6m')">
-        6-month follow-up
-      </button>
-      <button type="button" onclick="createReminder('1y')">
-        1-year follow-up
-      </button>
-      <button type="button" onclick="createReminder('2y')">
-        2-year follow-up
-      </button>
-      <button type="button" onclick="createReminder('3y')">
-        3-year follow-up
-      </button>
-    </div>
+    <label for="interval">Choose your follow-up plan:</label>
+    <select id="interval">
+      <option value="1m">1 month</option>
+      <option value="3m">3 months</option>
+      <option value="6m">6 months</option>
+      <option value="1y">1 year</option>
+    </select>
+
+    <button id="addBtn">Add reminder to my calendar</button>
 
     <p class="note">
-      The reminder date is set to about <strong>3 months before</strong> your child's
-      follow-up, based on <strong>today's date</strong>.
+      This will create a calendar reminder to call and schedule your follow-up if it has not already been scheduled.
+      <br/>
+      Scheduling phone: <span class="phone">503-494-3273</span>
     </p>
-    <p class="small">
-      After the file downloads, open it and add the event to your calendar when prompted.
-    </p>
+
+    <p class="note" id="logicNote"></p>
   </div>
 
-  <script>
-    // Map each interval to "months from today" for the reminder date
-    const intervalMonths = {
-      "6m": 3,   // 6-month follow-up → reminder 3 months from today
-      "1y": 9,   // 1-year follow-up → reminder 9 months from today
-      "2y": 21,  // 2-year follow-up → reminder 21 months from today
-      "3y": 33   // 3-year follow-up → reminder 33 months from today
-    };
+<script>
+(function () {
+  const clinicName = "Harold Schnitzer Diabetes and Adult Endocrinology Health Center";
+  const phone = "503-494-3273";
 
-    function addMonths(date, months) {
-      const d = new Date(date.getTime());
-      const day = d.getDate();
-      d.setMonth(d.getMonth() + months);
+  // Map follow-up interval -> months until reminder (3 months before follow-up)
+  // For 1m and 3m follow-ups, "3 months before" becomes "today" (0 months).
+  const reminderMonthsByInterval = {
+    "1m": 0,   // reminder today
+    "3m": 0,   // reminder today
+    "6m": 3,   // 6 - 3
+    "1y": 9    // 12 - 3
+  };
 
-      // Handle end-of-month edge cases
-      if (d.getDate() < day) {
-        d.setDate(0);
-      }
-      return d;
+  const intervalLabel = { "1m":"1 month", "3m":"3 months", "6m":"6 months", "1y":"1 year" };
+
+  function addMonths(d, months) {
+    // safe month add: JS will auto-roll dates; we anchor by setting date=1 then restore min day
+    const day = d.getDate();
+    const out = new Date(d);
+    out.setDate(1);
+    out.setMonth(out.getMonth() + months);
+    const lastDay = new Date(out.getFullYear(), out.getMonth() + 1, 0).getDate();
+    out.setDate(Math.min(day, lastDay));
+    return out;
+  }
+
+  function fmtICSDate(dt) {
+    // floating local time: YYYYMMDDTHHMMSS
+    const pad = (n) => String(n).padStart(2, "0");
+    return dt.getFullYear() +
+      pad(dt.getMonth() + 1) +
+      pad(dt.getDate()) + "T" +
+      pad(dt.getHours()) +
+      pad(dt.getMinutes()) +
+      pad(dt.getSeconds());
+  }
+
+  function downloadICS(reminderDate, intervalKey) {
+    // Event at 9:00 AM for 5 minutes
+    const start = new Date(reminderDate);
+    start.setHours(9, 0, 0, 0);
+    const end = new Date(reminderDate);
+    end.setHours(9, 5, 0, 0);
+
+    const uid = (crypto?.randomUUID?.() || (Date.now() + "@ohsu"));
+    const dtstamp = fmtICSDate(new Date());
+
+    const summary = "Call to schedule your follow-up appointment";
+    const description =
+      `Please call ${clinicName} at ${phone} to schedule your follow-up appointment (if not already scheduled).`;
+
+    const ics =
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//OHSU//Follow-Up Reminder//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:${uid}
+DTSTAMP:${dtstamp}
+SUMMARY:${summary}
+DESCRIPTION:${description}
+DTSTART:${fmtICSDate(start)}
+DTEND:${fmtICSDate(end)}
+BEGIN:VALARM
+TRIGGER:-PT0M
+ACTION:DISPLAY
+DESCRIPTION:Call ${clinicName} at ${phone} to schedule your follow-up.
+END:VALARM
+END:VEVENT
+END:VCALENDAR`;
+
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `followup-reminder-${intervalKey}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  const intervalEl = document.getElementById("interval");
+  const btn = document.getElementById("addBtn");
+  const note = document.getElementById("logicNote");
+
+  function updateNote() {
+    const key = intervalEl.value;
+    const months = reminderMonthsByInterval[key];
+    if (months === 0) {
+      note.textContent = `For a ${intervalLabel[key]} follow-up, “3 months before” is today — this will set a reminder for today.`;
+    } else {
+      note.textContent = `This will set a reminder for ${months} month(s) from today (3 months before your ${intervalLabel[key]} follow-up).`;
     }
+  }
+  intervalEl.addEventListener("change", updateNote);
+  updateNote();
 
-    function formatICSDate(date) {
-      function pad(n) { return n < 10 ? "0" + n : "" + n; }
-      const year = date.getFullYear();
-      const month = pad(date.getMonth() + 1);
-      const day = pad(date.getDate());
-      const hour = pad(date.getHours());
-      const minute = pad(date.getMinutes());
-      const second = pad(date.getSeconds());
-      return `${year}${month}${day}T${hour}${minute}${second}`;
-    }
-
-    function createReminder(intervalKey) {
-      const monthsToAdd = intervalMonths[intervalKey];
-      if (!monthsToAdd) {
-        alert("Invalid interval.");
-        return;
-      }
-
-      const now = new Date();
-      const reminderDate = addMonths(now, monthsToAdd);
-
-      // Set reminder time to 9:00–9:05 AM local
-      reminderDate.setHours(9, 0, 0, 0);
-      const endDate = new Date(reminderDate.getTime());
-      endDate.setMinutes(endDate.getMinutes() + 5);
-
-      const dtstart = formatICSDate(reminderDate);
-      const dtend = formatICSDate(endDate);
-      const dtstamp = formatICSDate(now);
-
-      const title = "Call Doernbecher Cardiology to Schedule Follow-Up Appointment";
-      const description =
-        "Please call Doernbecher Pediatric Cardiology at 503-418-5750 " +
-        "to schedule your child's follow-up appointment.";
-
-      const icsContent = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        "PRODID:-//OHSU Doernbecher//Cardiology Follow-Up Reminder//EN",
-        "CALSCALE:GREGORIAN",
-        "BEGIN:VEVENT",
-        "UID:" + Date.now() + "@ohsu.edu",
-        "DTSTAMP:" + dtstamp,
-        "SUMMARY:" + title,
-        "DESCRIPTION:" + description,
-        "DTSTART:" + dtstart,
-        "DTEND:" + dtend,
-        "BEGIN:VALARM",
-        "TRIGGER:-PT0M",
-        "ACTION:DISPLAY",
-        "DESCRIPTION:Call Doernbecher Cardiology to schedule your child’s follow-up appointment.",
-        "END:VALARM",
-        "END:VEVENT",
-        "END:VCALENDAR"
-      ].join("\r\n");
-
-      const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "cardio-followup-reminder-" + intervalKey + ".ics";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    // If there's a ?interval= in the URL (for QR codes), auto-run it
-    (function autoFromQuery() {
-      const params = new URLSearchParams(window.location.search);
-      const interval = params.get("interval");
-      if (interval && intervalMonths[interval]) {
-        // Slight delay so the page has rendered
-        setTimeout(() => createReminder(interval), 300);
-      }
-    })();
-  </script>
+  btn.addEventListener("click", () => {
+    const key = intervalEl.value;
+    const months = reminderMonthsByInterval[key];
+    const today = new Date();
+    const reminderDate = addMonths(today, months);
+    downloadICS(reminderDate, key);
+  });
+})();
+</script>
 </body>
 </html>
